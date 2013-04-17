@@ -32,11 +32,9 @@ using System.Collections.Generic;
 /// <a href="http://en.wikipedia.org/wiki/Finite-state_machine">finite-state
 /// machine (FSM)</a> that uses state transition tables for configuration.
 /// </summary>
-/// 
 /// <typeparam name="TState">
 /// The type representing all possible states of the FSM.
 /// </typeparam>
-/// 
 /// <typeparam name="TTrigger">
 /// The type representing the triggers that cause state transitions.
 /// </typeparam>
@@ -69,7 +67,6 @@ public class TinyStateMachine<TState, TTrigger>
     /// Initializes a new instance with the starting state given in 
     /// <paramref name="startingState"/>
     /// </summary>
-    /// 
     /// <param name="startingState">The starting state of the FSM</param>
     public TinyStateMachine(TState startingState)
     {
@@ -136,22 +133,10 @@ public class TinyStateMachine<TState, TTrigger>
     }
 
     /// <summary>
-    /// Short for "Transition." Adds a new entry to the state transition table.
+    /// Adds a new entry to the state transition table. See
+    /// <see cref="Tr(TState, TState, TTrigger, Action<TState, TState, TTrigger>,
+    /// Func<TState, TState, TTrigger, bool>)"/> for details.
     /// </summary>
-    /// <param name="from">Current state</param>
-    /// <param name="to">The state the FSM will transition to.</param>
-    /// <param name="trigger">Trigger</param>
-    /// <returns><c>this</c></returns>
-    /// <exception cref="System.InvalidOperationException">If called after
-    /// calling <see cref="Fire()">Fire</see> or <see cref="State"/></exception>
-    /// <remarks>
-    /// <see cref="Transition"/> methods should be called after the
-    /// <see cref="TinyStateMachine(TState)">constructor</see> and
-    /// _before_ calling <see cref="Fire()">Fire</see> or <see cref="State"/>.
-    /// Attempting to call any of the <see cref="Tr"/> methods 
-    /// afterward will raise an
-    /// <see cref="System.InvalidOperationException">InvalidOperationException</see>.
-    /// </remarks>
     public TinyStateMachine<TState, TTrigger> Tr
         (TState from
         , TState to
@@ -163,24 +148,10 @@ public class TinyStateMachine<TState, TTrigger>
     }
 
     /// <summary>
-    /// Short for "Transition." Adds a new entry to the state transition table.
+    /// Adds a new entry to the state transition table. See
+    /// <see cref="Tr(TState, TState, TTrigger, Action<TState, TState, TTrigger>,
+    /// Func<TState, TState, TTrigger, bool>)"/> for details.
     /// </summary>
-    /// <param name="from">Current state</param>
-    /// <param name="to">The state the FSM will transition to.</param>
-    /// <param name="trigger">Trigger</param>
-    /// <param name="action">A delegate to a method that will be called on
-    /// transition.</param>
-    /// <returns><c>this</c></returns>
-    /// <exception cref="System.InvalidOperationException">If called after
-    /// calling <see cref="Fire()">Fire</see> or <see cref="State"/></exception>
-    /// <remarks>
-    /// <see cref="Transition"/> methods should be called after the
-    /// <see cref="TinyStateMachine(TState)">constructor</see> and
-    /// _before_ calling <see cref="Fire()">Fire</see> or <see cref="State"/>.
-    /// Attempting to call any of the <see cref="Tr"/> methods 
-    /// afterward will raise an
-    /// <see cref="System.InvalidOperationException">InvalidOperationException</see>.
-    /// </remarks>
     public TinyStateMachine<TState, TTrigger> Tr
         ( TState from
         , TState to
@@ -191,25 +162,10 @@ public class TinyStateMachine<TState, TTrigger>
     }
 
     /// <summary>
-    /// Short for "Transition." Adds a new entry to the state transition table.
+    /// Adds a new entry to the state transition table. See
+    /// <see cref="Tr(TState, TState, TTrigger, Action<TState, TState, TTrigger>,
+    /// Func<TState, TState, TTrigger, bool>)"/> for details.
     /// </summary>
-    /// <param name="from">Current state</param>
-    /// <param name="to">The state the FSM will transition to.</param>
-    /// <param name="trigger">Trigger</param>
-    /// <param name="action">A delegate to a method that will be called on
-    /// transition with the current state, trigger, and the next state as
-    /// parameters.</param>
-    /// <returns><c>this</c></returns>
-    /// <exception cref="System.InvalidOperationException">If called after
-    /// calling <see cref="Fire()">Fire</see> or <see cref="State"/></exception>
-    /// <remarks>
-    /// <see cref="Transition"/> methods should be called after the
-    /// <see cref="TinyStateMachine(TState)">constructor</see> and
-    /// _before_ calling <see cref="Fire()">Fire</see> or <see cref="State"/>.
-    /// Attempting to call any of the <see cref="Tr"/> methods 
-    /// afterward will raise an
-    /// <see cref="System.InvalidOperationException">InvalidOperationException</see>.
-    /// </remarks>
     public TinyStateMachine<TState, TTrigger> Tr
         (TState from
         , TState to
@@ -220,24 +176,10 @@ public class TinyStateMachine<TState, TTrigger>
     }
 
     /// <summary>
-    /// Short for "Transition." Adds a new entry to the state transition table.
+    /// Adds a new entry to the state transition table. See
+    /// <see cref="Tr(TState, TState, TTrigger, Action<TState, TState, TTrigger>,
+    /// Func<TState, TState, TTrigger, bool>)"/> for details.
     /// </summary>
-    /// <param name="from">Current state</param>
-    /// <param name="to">The state the FSM will transition to.</param>
-    /// <param name="trigger">Trigger</param>
-    /// <param name="guard">A delegate to a method that returns true if
-    /// the transition is allowed or false otherwise.</param>
-    /// <returns><c>this</c></returns>
-    /// <exception cref="System.InvalidOperationException">If called after
-    /// calling <see cref="Fire()">Fire</see> or <see cref="State"/></exception>
-    /// <remarks>
-    /// <see cref="Transition"/> methods should be called after the
-    /// <see cref="TinyStateMachine(TState)">constructor</see> and
-    /// _before_ calling <see cref="Fire()">Fire</see> or <see cref="State"/>.
-    /// Attempting to call any of the <see cref="Tr"/> methods 
-    /// afterward will raise an
-    /// <see cref="System.InvalidOperationException">InvalidOperationException</see>.
-    /// </remarks>
     public TinyStateMachine<TState, TTrigger> Tr
         (TState from
         , TState to
@@ -248,25 +190,10 @@ public class TinyStateMachine<TState, TTrigger>
     }
 
     /// <summary>
-    /// Short for "Transition." Adds a new entry to the state transition table.
+    /// Adds a new entry to the state transition table. See
+    /// <see cref="Tr(TState, TState, TTrigger, Action<TState, TState, TTrigger>,
+    /// Func<TState, TState, TTrigger, bool>)"/> for details.
     /// </summary>
-    /// <param name="from">Current state</param>
-    /// <param name="to">The state the FSM will transition to.</param>
-    /// <param name="trigger">Trigger</param>
-    /// <param name="guard">A delegate to a method that takes the current state
-    /// and trigger as parameters and returns true if the transition is allowed
-    /// or false otherwise.</param>
-    /// <returns><c>this</c></returns>
-    /// <exception cref="System.InvalidOperationException">If called after
-    /// calling <see cref="Fire()">Fire</see> or <see cref="State"/></exception>
-    /// <remarks>
-    /// <see cref="Transition"/> methods should be called after the
-    /// <see cref="TinyStateMachine(TState)">constructor</see> and
-    /// _before_ calling <see cref="Fire()">Fire</see> or <see cref="State"/>.
-    /// Attempting to call any of the <see cref="Tr"/> methods 
-    /// afterward will raise an
-    /// <see cref="System.InvalidOperationException">InvalidOperationException</see>.
-    /// </remarks>
     public TinyStateMachine<TState, TTrigger> Tr
         ( TState from
         , TState to
@@ -277,26 +204,10 @@ public class TinyStateMachine<TState, TTrigger>
     }
 
     /// <summary>
-    /// Short for "Transition." Adds a new entry to the state transition table.
+    /// Adds a new entry to the state transition table. See
+    /// <see cref="Tr(TState, TState, TTrigger, Action<TState, TState, TTrigger>,
+    /// Func<TState, TState, TTrigger, bool>)"/> for details.
     /// </summary>
-    /// <param name="from">Current state</param>
-    /// <param name="to">The state the FSM will transition to.</param>
-    /// <param name="trigger">Trigger</param>
-    /// <param name="action">A delegate to a method that will be called on
-    /// transition.</param>
-    /// <param name="guard">A delegate to a method that returns true if
-    /// the transition is allowed or false otherwise.</param>
-    /// <returns><c>this</c></returns>
-    /// <exception cref="System.InvalidOperationException">If called after
-    /// calling <see cref="Fire()">Fire</see> or <see cref="State"/></exception>
-    /// <remarks>
-    /// <see cref="Transition"/> methods should be called after the
-    /// <see cref="TinyStateMachine(TState)">constructor</see> and
-    /// _before_ calling <see cref="Fire()">Fire</see> or <see cref="State"/>.
-    /// Attempting to call any of the <see cref="Tr"/> methods 
-    /// afterward will raise an
-    /// <see cref="System.InvalidOperationException">InvalidOperationException</see>.
-    /// </remarks>
     public TinyStateMachine<TState, TTrigger> Tr
         (TState from
         , TState to
@@ -313,17 +224,21 @@ public class TinyStateMachine<TState, TTrigger>
     /// <param name="from">Current state</param>
     /// <param name="to">The state the FSM will transition to.</param>
     /// <param name="trigger">Trigger</param>
-    /// <param name="action">A delegate to a method that will be called on
-    /// transition with the current state, trigger, and the next state as
-    /// parameters.</param>
-    /// <param name="guard">A delegate to a method that takes the current state
-    /// and trigger as parameters and returns true if the transition is allowed
-    /// or false otherwise.</param>
+    /// <param name="action">A delegate to a method that will be called _after_
+    /// making the transition described by <paramref name="from"/>,
+    /// <paramref name="to"/>, and <paramref name="trigger"/>.</param>
+    /// <param name="guard">A delegate to a method that will be called before 
+    /// before attempting to make the transition described by 
+    /// <paramref name="from"/>, <paramref name="to"/>,
+    /// and <paramref name="trigger"/>. The transition will be aborted silently
+    /// and without raising any errors if the method pointed to by
+    /// <c>guard</c> returns <c>false</c>, and it will proceed normally if the
+    /// method returns <c>true</c>.
     /// <returns><c>this</c></returns>
     /// <exception cref="System.InvalidOperationException">If called after
     /// calling <see cref="Fire()">Fire</see> or <see cref="State"/></exception>
     /// <remarks>
-    /// <see cref="Transition"/> methods should be called after the
+    /// <see cref="Tr"/> methods should be called after the
     /// <see cref="TinyStateMachine(TState)">constructor</see> and
     /// _before_ calling <see cref="Fire()">Fire</see> or <see cref="State"/>.
     /// Attempting to call any of the <see cref="Tr"/> methods 
