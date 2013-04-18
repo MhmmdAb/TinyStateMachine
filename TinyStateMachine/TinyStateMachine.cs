@@ -44,17 +44,14 @@ public class TinyStateMachine<TState, TTrigger>
     private class TransitionEntry
     {
         public TState Next { get; private set; }
-        public Action<TState, TState, TTrigger> Action { get; private set; }
-        public Func<TState, TState, TTrigger, bool> Guard { get; private set; }
+        public Action<TState, TTrigger, TState> Action { get; set; }
+        public Func<TState, TTrigger, TState, bool> Guard { get; set; }
 
-        public TransitionEntry
-            (TState next
-            , Action<TState, TState, TTrigger> action
-            , Func<TState, TState, TTrigger, bool> guard)
+        public TransitionEntry(TState next)
         {
             Next = next;
-            Action = action;
-            Guard = guard;
+            Action = null;
+            Guard = null;
         }
     }
     #endregion
@@ -62,6 +59,9 @@ public class TinyStateMachine<TState, TTrigger>
     private bool canConfigure;
     private TState state;
     private readonly Dictionary<TState, Dictionary<TTrigger, TransitionEntry>> transitions;
+    
+    private TState lastConfiguredState;
+    private TTrigger lastConfiguredTrigger;
 
     /// <summary>
     /// Initializes a new instance with the starting state given in 
@@ -92,9 +92,7 @@ public class TinyStateMachine<TState, TTrigger>
     /// and the configuration of the current state previously set by calls
     /// to one of the <see cref="Tr"/> methods.
     /// </summary>
-    /// 
     /// <param name="trigger">The trigger to fire.</param>
-    /// 
     /// <exception cref="System.InvalidOperationException">No transition was
     /// configured for <paramref name="trigger"/> and the current state.
     /// </exception>
@@ -123,117 +121,21 @@ public class TinyStateMachine<TState, TTrigger>
 
         var guardAllowsFiring 
             =  transition.Guard == null
-            || transition.Guard(state, transition.Next, trigger);
+            || transition.Guard(state, trigger, transition.Next);
         if (!guardAllowsFiring)
             return;
 
         if (transition.Action != null)
-            transition.Action(state, transition.Next, trigger);
+            transition.Action(state, trigger, transition.Next);
         state = transition.Next;
-    }
-
-    /// <summary>
-    /// Adds a new entry to the state transition table. See
-    /// <see cref="Tr(TState, TState, TTrigger, Action<TState, TState, TTrigger>,
-    /// Func<TState, TState, TTrigger, bool>)"/> for details.
-    /// </summary>
-    public TinyStateMachine<TState, TTrigger> Tr
-        (TState from
-        , TState to
-        , TTrigger trigger)
-    {
-        Action<TState, TState, TTrigger> action = null;
-        Func<TState, TState, TTrigger, bool> guard = null;
-        return Tr(from, to, trigger, action, guard);
-    }
-
-    /// <summary>
-    /// Adds a new entry to the state transition table. See
-    /// <see cref="Tr(TState, TState, TTrigger, Action<TState, TState, TTrigger>,
-    /// Func<TState, TState, TTrigger, bool>)"/> for details.
-    /// </summary>
-    public TinyStateMachine<TState, TTrigger> Tr
-        ( TState from
-        , TState to
-        , TTrigger trigger
-        , Action action)
-    {
-        return Tr(from, to, trigger, (c, t, n) => action());
-    }
-
-    /// <summary>
-    /// Adds a new entry to the state transition table. See
-    /// <see cref="Tr(TState, TState, TTrigger, Action<TState, TState, TTrigger>,
-    /// Func<TState, TState, TTrigger, bool>)"/> for details.
-    /// </summary>
-    public TinyStateMachine<TState, TTrigger> Tr
-        (TState from
-        , TState to
-        , TTrigger trigger
-        , Action<TState, TState, TTrigger> action)
-    {
-        return Tr(from, to, trigger, action, null);
-    }
-
-    /// <summary>
-    /// Adds a new entry to the state transition table. See
-    /// <see cref="Tr(TState, TState, TTrigger, Action<TState, TState, TTrigger>,
-    /// Func<TState, TState, TTrigger, bool>)"/> for details.
-    /// </summary>
-    public TinyStateMachine<TState, TTrigger> Tr
-        (TState from
-        , TState to
-        , TTrigger trigger
-        , Func<bool> guard)
-    {
-        return Tr(from, to, trigger, (f, t, tr) => guard());
-    }
-
-    /// <summary>
-    /// Adds a new entry to the state transition table. See
-    /// <see cref="Tr(TState, TState, TTrigger, Action<TState, TState, TTrigger>,
-    /// Func<TState, TState, TTrigger, bool>)"/> for details.
-    /// </summary>
-    public TinyStateMachine<TState, TTrigger> Tr
-        ( TState from
-        , TState to
-        , TTrigger trigger
-        , Func<TState, TState, TTrigger, bool> guard)
-    {
-        return Tr(from, to, trigger, null, guard);
-    }
-
-    /// <summary>
-    /// Adds a new entry to the state transition table. See
-    /// <see cref="Tr(TState, TState, TTrigger, Action<TState, TState, TTrigger>,
-    /// Func<TState, TState, TTrigger, bool>)"/> for details.
-    /// </summary>
-    public TinyStateMachine<TState, TTrigger> Tr
-        (TState from
-        , TState to
-        , TTrigger trigger
-        , Action action
-        , Func<bool> guard)
-    {
-        return Tr(from, to, trigger, (f1, t1, tr1) => action(), (f2, t2, tr2) => guard());
     }
 
     /// <summary>
     /// Short for "Transition." Adds a new entry to the state transition table.
     /// </summary>
     /// <param name="from">Current state</param>
-    /// <param name="to">The state the FSM will transition to.</param>
     /// <param name="trigger">Trigger</param>
-    /// <param name="action">A delegate to a method that will be called _after_
-    /// making the transition described by <paramref name="from"/>,
-    /// <paramref name="to"/>, and <paramref name="trigger"/>.</param>
-    /// <param name="guard">A delegate to a method that will be called before 
-    /// before attempting to make the transition described by 
-    /// <paramref name="from"/>, <paramref name="to"/>,
-    /// and <paramref name="trigger"/>. The transition will be aborted silently
-    /// and without raising any errors if the method pointed to by
-    /// <c>guard</c> returns <c>false</c>, and it will proceed normally if the
-    /// method returns <c>true</c>.
+    /// <param name="to">The state the FSM will transition to.</param>
     /// <returns><c>this</c></returns>
     /// <exception cref="System.InvalidOperationException">If called after
     /// calling <see cref="Fire()">Fire</see> or <see cref="State"/></exception>
@@ -242,22 +144,16 @@ public class TinyStateMachine<TState, TTrigger>
     /// <see cref="TinyStateMachine(TState)">constructor</see> and
     /// _before_ calling <see cref="Fire()">Fire</see> or <see cref="State"/>.
     /// Attempting to call any of the <see cref="Tr"/> methods 
-    /// afterward will raise an
+    /// afterward will throw an
     /// <see cref="System.InvalidOperationException">InvalidOperationException</see>.
     /// </remarks>
-    public TinyStateMachine<TState, TTrigger> Tr
-        ( TState from
-        , TState to
-        , TTrigger trigger
-        , Action<TState, TState, TTrigger> action
-        , Func<TState, TState, TTrigger, bool> guard)
+    /// </param>
+    public TinyStateMachine<TState, TTrigger> Tr(TState from, TTrigger trigger, TState to)
     {
         if (!canConfigure)
         {
-            string errorMessage
-                = "\"AddTransition\" cannot be called after  \"Fire()\" "
-                + "or \"State\" are called.";
-            throw new InvalidOperationException(errorMessage);
+            throw new InvalidOperationException
+                ("\"Tr\" cannot be called after \"Fire()\" or \"State\" are called.");
         }
 
         if (!transitions.ContainsKey(from))
@@ -273,8 +169,111 @@ public class TinyStateMachine<TState, TTrigger>
             throw new InvalidOperationException(errorMessage);
         }
 
-        var transtition = new TransitionEntry(to, action, guard);
+        var transtition = new TransitionEntry(to);
         transitions[from].Add(trigger, transtition);
+
+        lastConfiguredState = from;
+        lastConfiguredTrigger = trigger;
+
+        return this;
+    }
+
+    /// <summary>
+    /// See <see cref="OnTransition(Action<TState,TTrigger,TState>)"/>.
+    /// </summary>
+    public TinyStateMachine<TState, TTrigger> OnTransition(Action action)
+    {
+        return OnTransition((f, tr, t) => action());
+    }
+
+    /// <summary>
+    /// Sets the action that will be called _after_ the transition described
+    /// by the last call to <see cref="Tr()">Tr</see> takes place.
+    /// </summary>
+    /// <param name="action">A delegate to a method that will be called on state 
+    /// change.</param>
+    /// <returns><c>this</c></returns>
+    /// <exception cref="System.InvalidOperationException">No transition was
+    /// configured before calling this method or an action was already set
+    /// for the last transition.
+    /// </exception>
+    public TinyStateMachine<TState, TTrigger> OnTransition(Action<TState, TTrigger, TState> action)
+    {
+        if (!canConfigure)
+        {
+            throw new InvalidOperationException
+                ("\"Action\" cannot be called after \"Fire()\" or \"State\" are called.");
+        }
+
+        if (transitions.Count == 0)
+        {
+            throw new InvalidOperationException
+                ("\"Action\" cannot be called before configuring a transition.");
+        }
+
+        var tr = transitions[lastConfiguredState][lastConfiguredTrigger];
+        if (tr.Action != null)
+        {
+            var errorMessage = string.Format
+                ("An action has already been configured for state {0} and trigger {1}."
+                , lastConfiguredState
+                , lastConfiguredTrigger);
+            throw new InvalidOperationException(errorMessage);
+        }
+
+        tr.Action = action;
+
+        return this;
+    }
+
+    /// <summary>
+    /// See <see cref="Guard(Func<TState,TTrigger,TState,bool>)"/>.
+    /// </summary>
+    public TinyStateMachine<TState, TTrigger> Guard(Func<bool> guard)
+    {
+        return Guard((f, tr, t) => guard());
+    }
+
+    /// <summary>
+    /// Sets the method that will be called _before_ attempting to make the 
+    /// transition described by the last call to <see cref="Tr()">Tr</see>. The
+    /// transition will be silently aborted without throwing any errors if
+    /// <paramref name="guard"/> method returns <c>false</c>, and will continue
+    /// normally if the method returns <c>true</c>
+    /// </summary>
+    /// <param name="guard">A delegate to the method that will be called
+    /// before attempting the transition.</param>
+    /// <returns><c>this</c></returns>
+    /// <exception cref="System.InvalidOperationException">No transition was
+    /// configured before calling this method or a guard was already set
+    /// for the last transition.
+    /// </exception>
+    public TinyStateMachine<TState, TTrigger> Guard(Func<TState, TTrigger, TState, bool> guard)
+    {
+        if (!canConfigure)
+        {
+            throw new InvalidOperationException
+                ("\"Guard\" cannot be called after \"Fire()\" or \"State\" are called.");
+        }
+
+        if (transitions.Count == 0)
+        {
+            throw new InvalidOperationException
+                ("\"Action\" cannot be called before configuring a transition.");
+        }
+
+        var tr = transitions[lastConfiguredState][lastConfiguredTrigger];
+
+        if (tr.Guard != null)
+        {
+            var errorMessage = string.Format
+                ("A guard has already been configured for state {0} and trigger {1}."
+                , lastConfiguredState
+                , lastConfiguredTrigger);
+            throw new InvalidOperationException(errorMessage);
+        }
+
+        tr.Guard = guard;
 
         return this;
     }
