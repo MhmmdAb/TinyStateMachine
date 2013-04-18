@@ -56,10 +56,9 @@ public class TinyStateMachine<TState, TTrigger>
     }
     #endregion
 
+    private readonly Dictionary<TState, Dictionary<TTrigger, TransitionEntry>> transitions;    
     private bool canConfigure;
     private TState state;
-    private readonly Dictionary<TState, Dictionary<TTrigger, TransitionEntry>> transitions;
-    
     private TState lastConfiguredState;
     private TTrigger lastConfiguredTrigger;
 
