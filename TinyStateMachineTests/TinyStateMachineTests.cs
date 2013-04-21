@@ -176,6 +176,5 @@ public class TinyStateMachineTests
         Assert.That(machine.State, Is.EqualTo(DoorState.Open));
         machine.Reset(DoorState.Closed);
         Assert.That(machine.State, Is.EqualTo(DoorState.Closed));
-
     }
 }
