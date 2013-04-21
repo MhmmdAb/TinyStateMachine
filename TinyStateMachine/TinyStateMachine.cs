@@ -58,6 +58,7 @@ public class TinyStateMachine<TState, TTrigger>
 
     private readonly Dictionary<TState, Dictionary<TTrigger, TransitionEntry>> transitions;    
     private bool canConfigure;
+    private TState startingState;
     private TState state;
     private TState lastConfiguredState;
     private TTrigger lastConfiguredTrigger;
@@ -69,9 +70,10 @@ public class TinyStateMachine<TState, TTrigger>
     /// <param name="startingState">The starting state of the FSM</param>
     public TinyStateMachine(TState startingState)
     {
-        canConfigure = true;
-        state = startingState;
-        transitions = new Dictionary<TState, Dictionary<TTrigger, TransitionEntry>>();
+        this.canConfigure = true;
+        this.state = startingState;
+        this.startingState = startingState;
+        this.transitions = new Dictionary<TState, Dictionary<TTrigger, TransitionEntry>>();
     }
 
     /// <summary>
@@ -275,5 +277,27 @@ public class TinyStateMachine<TState, TTrigger>
         tr.Guard = guard;
 
         return this;
+    }
+
+    /// <summary>
+    /// Sets the state of the machine to the starting state specified in 
+    /// the <see cref="TinyStateMachine(TState)">constructor</see>, but does
+    /// _not_ fire any <see cref="OnTransition">transition events</see> 
+    /// and does _not_ check any of the <see cref="Guard">guard methods.</see>
+    /// </summary>
+    public void Reset()
+    {
+        this.state = startingState;
+    }
+
+    /// <summary>
+    /// Sets the state of the machine to <paramref name="state"/>, but does
+    /// _not_ fire any <see cref="OnTransition">transition events</see> 
+    /// and does _not_ check any of the <see cref="Guard">guard methods.</see>
+    /// </summary>
+    /// <param name="state">The state to which the machine will be set.</param>
+    public void Reset(TState state)
+    {
+        this.state = state;
     }
 }

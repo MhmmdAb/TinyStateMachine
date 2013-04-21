@@ -7,7 +7,7 @@ public class TinyStateMachineTests
     enum DoorState
     {
         Closed,
-        Opened,
+        Open,
     }
 
     enum DoorEvents
@@ -19,8 +19,8 @@ public class TinyStateMachineTests
     private static TinyStateMachine<DoorState, DoorEvents> GetFixture()
     {
         var machine = new TinyStateMachine<DoorState, DoorEvents>(DoorState.Closed);
-        machine.Tr(DoorState.Closed, DoorEvents.Open, DoorState.Opened)
-               .Tr(DoorState.Opened, DoorEvents.Close, DoorState.Closed);
+        machine.Tr(DoorState.Closed, DoorEvents.Open, DoorState.Open)
+               .Tr(DoorState.Open, DoorEvents.Close, DoorState.Closed);
         return machine;
     }
 
@@ -37,7 +37,7 @@ public class TinyStateMachineTests
         var machine = GetFixture();
         Assert.That(machine.State, Is.EqualTo(DoorState.Closed));
         machine.Fire(DoorEvents.Open);
-        Assert.That(machine.State, Is.EqualTo(DoorState.Opened));
+        Assert.That(machine.State, Is.EqualTo(DoorState.Open));
     }
 
     [Test]
@@ -47,8 +47,8 @@ public class TinyStateMachineTests
         var wasDoorClosed = false;
 
         var machine = new TinyStateMachine<DoorState, DoorEvents>(DoorState.Closed);
-        machine.Tr(DoorState.Closed, DoorEvents.Open,  DoorState.Opened).OnTransition(()=> wasDoorOpened = true)
-               .Tr(DoorState.Opened, DoorEvents.Close, DoorState.Closed).OnTransition(()=> wasDoorClosed = true);
+        machine.Tr(DoorState.Closed, DoorEvents.Open,  DoorState.Open).OnTransition(()=> wasDoorOpened = true)
+               .Tr(DoorState.Open, DoorEvents.Close, DoorState.Closed).OnTransition(()=> wasDoorClosed = true);
 
         Assert.That(wasDoorOpened, Is.False);
         Assert.That(wasDoorClosed, Is.False);
@@ -75,8 +75,8 @@ public class TinyStateMachineTests
     public void Guard_can_stop_transition()
     {
         var machine = new TinyStateMachine<DoorState, DoorEvents>(DoorState.Closed);
-        machine.Tr(DoorState.Closed, DoorEvents.Open,  DoorState.Opened).Guard(() => false)
-               .Tr(DoorState.Opened, DoorEvents.Close, DoorState.Closed);
+        machine.Tr(DoorState.Closed, DoorEvents.Open,  DoorState.Open).Guard(() => false)
+               .Tr(DoorState.Open, DoorEvents.Close, DoorState.Closed);
 
         Assert.That(machine.State, Is.EqualTo(DoorState.Closed));
         machine.Fire(DoorEvents.Open);
@@ -88,24 +88,24 @@ public class TinyStateMachineTests
     {
         var machine = new TinyStateMachine<DoorState, DoorEvents>(DoorState.Closed);
         machine
-            .Tr(DoorState.Closed, DoorEvents.Open, DoorState.Opened)
+            .Tr(DoorState.Closed, DoorEvents.Open, DoorState.Open)
             .OnTransition((from, trigger, to) => 
             {
                 Assert.That(from, Is.EqualTo(DoorState.Closed));
                 Assert.That(trigger, Is.EqualTo(DoorEvents.Open));
-                Assert.That(to, Is.EqualTo(DoorState.Opened));
+                Assert.That(to, Is.EqualTo(DoorState.Open));
             })
-            .Tr(DoorState.Opened, DoorEvents.Close, DoorState.Closed)
+            .Tr(DoorState.Open, DoorEvents.Close, DoorState.Closed)
             .OnTransition((from, trigger, to) =>
             {
-                Assert.That(from, Is.EqualTo(DoorState.Opened));
+                Assert.That(from, Is.EqualTo(DoorState.Open));
                 Assert.That(trigger, Is.EqualTo(DoorEvents.Close));
                 Assert.That(to, Is.EqualTo(DoorState.Closed));
             });
 
         Assert.That(machine.State, Is.EqualTo(DoorState.Closed));
         machine.Fire(DoorEvents.Open);
-        Assert.That(machine.State, Is.EqualTo(DoorState.Opened));
+        Assert.That(machine.State, Is.EqualTo(DoorState.Open));
         machine.Fire(DoorEvents.Close);
         Assert.That(machine.State, Is.EqualTo(DoorState.Closed));
     }
@@ -115,18 +115,18 @@ public class TinyStateMachineTests
     {
         var machine = new TinyStateMachine<DoorState, DoorEvents>(DoorState.Closed);
         machine
-            .Tr(DoorState.Closed, DoorEvents.Open, DoorState.Opened)
+            .Tr(DoorState.Closed, DoorEvents.Open, DoorState.Open)
             .Guard((from, trigger, to) =>
             {
                 Assert.That(from, Is.EqualTo(DoorState.Closed));
                 Assert.That(trigger, Is.EqualTo(DoorEvents.Open));
-                Assert.That(to, Is.EqualTo(DoorState.Opened));
+                Assert.That(to, Is.EqualTo(DoorState.Open));
                 return true;
             })
-            .Tr(DoorState.Opened, DoorEvents.Close, DoorState.Closed)
+            .Tr(DoorState.Open, DoorEvents.Close, DoorState.Closed)
             .Guard((from, trigger, to) =>
             {
-                Assert.That(from, Is.EqualTo(DoorState.Opened));
+                Assert.That(from, Is.EqualTo(DoorState.Open));
                 Assert.That(trigger, Is.EqualTo(DoorEvents.Close));
                 Assert.That(to, Is.EqualTo(DoorState.Closed));
                 return true;
@@ -134,8 +134,48 @@ public class TinyStateMachineTests
 
         Assert.That(machine.State, Is.EqualTo(DoorState.Closed));
         machine.Fire(DoorEvents.Open);
-        Assert.That(machine.State, Is.EqualTo(DoorState.Opened));
+        Assert.That(machine.State, Is.EqualTo(DoorState.Open));
         machine.Fire(DoorEvents.Close);
         Assert.That(machine.State, Is.EqualTo(DoorState.Closed));
+    }
+
+    [Test]
+    public void Reset_returns_machine_to_initial_state()
+    {
+        var machine = GetFixture();
+        Assert.That(machine.State, Is.EqualTo(DoorState.Closed));
+        machine.Fire(DoorEvents.Open);
+        Assert.That(machine.State, Is.EqualTo(DoorState.Open));
+        machine.Reset();
+        Assert.That(machine.State, Is.EqualTo(DoorState.Closed));
+    }
+
+    [Test]
+    public void Reset_sets_machine_to_specified_state()
+    {
+        var machine = GetFixture();
+        Assert.That(machine.State, Is.EqualTo(DoorState.Closed));
+        machine.Reset(DoorState.Open);
+        Assert.That(machine.State, Is.EqualTo(DoorState.Open));
+    }
+
+    [Test]
+    public void Calling_Reset_does_not_call_guard_or_transitions()
+    {
+        var machine = new TinyStateMachine<DoorState, DoorEvents>(DoorState.Closed);
+        machine
+            .Tr(DoorState.Closed, DoorEvents.Open, DoorState.Open)
+                .OnTransition(() => Assert.Fail())
+                .Guard((from, trigger, to) => false)
+            .Tr(DoorState.Open, DoorEvents.Close, DoorState.Closed)
+                .OnTransition(() => Assert.Fail())
+                .Guard((from, trigger, to) => false);
+
+        Assert.That(machine.State, Is.EqualTo(DoorState.Closed));
+        machine.Reset(DoorState.Open);
+        Assert.That(machine.State, Is.EqualTo(DoorState.Open));
+        machine.Reset(DoorState.Closed);
+        Assert.That(machine.State, Is.EqualTo(DoorState.Closed));
+
     }
 }
