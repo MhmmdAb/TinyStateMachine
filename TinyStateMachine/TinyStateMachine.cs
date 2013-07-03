@@ -180,6 +180,16 @@ public class TinyStateMachine<TState, TTrigger>
     }
 
     /// <summary>
+    /// Returns true if machine is in <c>state</c>. Not
+    /// very useful for now, but should come in handy if
+    /// support for sub-states is ever added.
+    /// </summary>
+    public bool IsInState(TState state)
+    {
+        return this.State.Equals(state);
+    }
+
+    /// <summary>
     /// See <see cref="OnTransition(Action<TState,TTrigger,TState>)"/>.
     /// </summary>
     public TinyStateMachine<TState, TTrigger> OnTransition(Action action)
