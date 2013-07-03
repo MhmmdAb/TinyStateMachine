@@ -1,5 +1,5 @@
 *.suo
 *.csproj.user
-/bin
-/docs/html
-/packages
+bin
+docs
+packages

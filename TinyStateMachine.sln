@@ -12,6 +12,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TinyStateMachine", "TinySta
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TinyStateMachineTests", "TinyStateMachineTests\TinyStateMachineTests.csproj", "{D81F8352-A542-4011-A2ED-39EA10AD4CC1}"
 EndProject
+Project("{7CF6DF6D-3B04-46F8-A40B-537D21BCA0B4}") = "TinyStateMachineDoc", "TinyStateMachineDoc\TinyStateMachineDoc.shfbproj", "{954C2C47-7D00-4061-9C96-2008B3922AE7}"
+	ProjectSection(ProjectDependencies) = postProject
+		{C609301C-9C7C-4021-8CDA-E1C541950A04} = {C609301C-9C7C-4021-8CDA-E1C541950A04}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -26,6 +31,10 @@ Global
 		{D81F8352-A542-4011-A2ED-39EA10AD4CC1}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{D81F8352-A542-4011-A2ED-39EA10AD4CC1}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{D81F8352-A542-4011-A2ED-39EA10AD4CC1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{954C2C47-7D00-4061-9C96-2008B3922AE7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{954C2C47-7D00-4061-9C96-2008B3922AE7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{954C2C47-7D00-4061-9C96-2008B3922AE7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{954C2C47-7D00-4061-9C96-2008B3922AE7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
