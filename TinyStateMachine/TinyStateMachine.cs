@@ -83,8 +83,16 @@ namespace ConnivingSquirrel.Ai
         /// <paramref name="startingState"/>
         /// </summary>
         /// <param name="startingState">The starting state of the FSM</param>
+        /// <exception cref="System.ArgumentNullException">
+        /// <paramref name="startingState"/> is null.
+        /// </exception>
         public TinyStateMachine(TState startingState)
         {
+            if (startingState == null)
+            {
+                throw new ArgumentNullException("startingState");
+            }
+
             this.canConfigure = true;
             this.state = startingState;
             this.startingState = startingState;
@@ -102,10 +110,17 @@ namespace ConnivingSquirrel.Ai
         /// was configured for <paramref name="trigger"/> and the current
         /// state.
         /// </exception>
+        /// <exception cref="System.ArgumentNullException">
+        /// <paramref name="trigger"/> is null.
+        /// </exception>
         public void Fire(TTrigger trigger)
         {
-            canConfigure = false;
+            if (trigger == null)
+            {
+                throw new ArgumentNullException("trigger");
+            }
 
+            canConfigure = false;
             if (!transitions.ContainsKey(state))
             {
                 var errorMessage = string.Format(
@@ -145,13 +160,16 @@ namespace ConnivingSquirrel.Ai
         /// <summary>
         /// See <see cref="Guard(Func&lt;TState,TTrigger,TState,bool&gt;)"/>.
         /// </summary>
+        /// <param name="guard">A delegate to the method that will be called
+        /// before attempting the transition.</param>
+        /// <returns><c>this</c></returns>
         public TinyStateMachine<TState, TTrigger> Guard(Func<bool> guard)
         {
             return Guard((f, tr, t) => guard());
         }
 
         /// <summary>
-        /// Sets the method that will be called _before_ attempting to make the
+        /// Sets the method that will be called <em>before</em> attempting to make the
         /// transition described by the last call to 
         /// <see cref="Tr(TState, TTrigger, TState)">Tr</see>. The transitions
         /// will be silently aborted without throwing any errors if
@@ -165,10 +183,18 @@ namespace ConnivingSquirrel.Ai
         /// was configured before calling this method or a guard was already
         /// set for the last transition.
         /// </exception>
+        /// <exception cref="System.ArgumentNullException">
+        /// <paramref name="guard"/> is null.
+        /// </exception>
         public TinyStateMachine<TState, TTrigger> Guard(
             Func<TState, TTrigger, TState, bool> guard
             )
         {
+            if (guard == null)
+            {
+                throw new ArgumentNullException("guard");
+            }
+
             if (!canConfigure)
             {
                 throw new InvalidOperationException(
@@ -209,22 +235,54 @@ namespace ConnivingSquirrel.Ai
         /// now, but should come in handy if support for sub-states is ever
         /// added.
         /// </summary>
+        /// <param name="state">The <c>state</c> to test for.</param>
+        /// <returns><c>true</c> if in <paramref name="state"/>, false
+        /// otherwise
+        /// </returns>
         public bool IsInState(TState state)
         {
             return this.State.Equals(state);
         }
 
         /// <summary>
+        /// Shorthand for <see cref="OnTransition(Action)"/>.
+        /// </summary>
+        /// <param name="action">A delegate to a method that will be called 
+        /// on state change.</param>
+        /// <returns><c>this</c></returns>
+        public TinyStateMachine<TState, TTrigger> On(Action action)
+        {
+            return OnTransition(action);
+        }
+
+        /// <summary>
+        /// Shorthand for
+        /// <see cref="OnTransition(Action&lt;TState,TTrigger,TState&gt;)"/>.
+        /// </summary>
+        /// <param name="action">A delegate to a method that will be called 
+        /// on state change.</param>
+        /// <returns><c>this</c></returns>
+        public TinyStateMachine<TState, TTrigger> On(
+            Action<TState, TTrigger, TState> action
+            )
+        {
+            return OnTransition(action);
+        }
+
+        /// <summary>
         /// See
         /// <see cref="OnTransition(Action&lt;TState,TTrigger,TState&gt;)"/>.
         /// </summary>
+        /// <param name="action">A delegate to a method that will be called 
+        /// on state change.</param>
+        /// <returns><c>this</c></returns>
         public TinyStateMachine<TState, TTrigger> OnTransition(Action action)
         {
             return OnTransition((f, tr, t) => action());
         }
 
         /// <summary>
-        /// Sets the action that will be called _after_ the transition
+        /// Sets the action that will be called <em>after</em> the transition
         /// described by the last call to 
         /// <see cref="Tr(TState, TTrigger, TState)">Tr</see> takes place.
         /// </summary>
@@ -235,10 +293,18 @@ namespace ConnivingSquirrel.Ai
         /// was configured before calling this method or an action was already
         /// set for the last transition.
         /// </exception>
+        /// <exception cref="System.ArgumentNullException">
+        /// <paramref name="action"/> is null.
+        /// </exception>
         public TinyStateMachine<TState, TTrigger> OnTransition(
             Action<TState, TTrigger, TState> action
             )
         {
+            if (action == null)
+            {
+                throw new ArgumentNullException("action");
+            }
+
             if (!canConfigure)
             {
                 throw new InvalidOperationException(
@@ -293,8 +359,28 @@ namespace ConnivingSquirrel.Ai
         /// </summary>
         /// <param name="state">The state to which the machine will be set.
         /// </param>
+        /// <exception cref="System.ArgumentNullException">
+        /// <paramref name="state"/> is null.
+        /// </exception>
+        /// <exception cref="System.InvalidOperationException">No 
+        /// transitions are configured for given <paramref name="state"/>
+        /// </exception>
         public void Reset(TState state)
         {
+            if (state == null)
+            {
+                throw new ArgumentNullException("state");
+            }
+
+            if (!transitions.ContainsKey(state))
+            {
+                var errorMessage = string.Format(
+                    "There are no transitions configured for state \"{0}\"",
+                    state
+                    );
+
+                throw new InvalidOperationException(errorMessage);
+            }
             this.state = state;
         }
 
@@ -308,10 +394,14 @@ namespace ConnivingSquirrel.Ai
         /// <exception cref="System.InvalidOperationException">If called after
         /// calling <see cref="Fire(TTrigger)">Fire</see> or <see cref="State"/>
         /// </exception>
+        /// <exception cref="System.ArgumentNullException">Any of the
+        /// arguments <paramref name="from"/>, <paramref name="trigger"/>, or 
+        /// <paramref name="to"/> is null.
+        /// </exception>
         /// <remarks>
         /// <see cref="Tr"/> methods should be called after the
         /// <see cref="TinyStateMachine(TState)">constructor</see> and
-        /// _before_ calling <see cref="Fire(TTrigger)">Fire</see> or
+        /// <em>before</em> calling <see cref="Fire(TTrigger)">Fire</see> or
         /// <see cref="State"/>. Attempting to call any of the <see cref="Tr"/>
         /// methods afterward will throw an
         /// <see cref="System.InvalidOperationException">
@@ -323,6 +413,22 @@ namespace ConnivingSquirrel.Ai
             TState to
             )
         {
+            if (from == null)
+            {
+                throw new ArgumentNullException("from");
+            }
+
+            if (trigger == null)
+            {
+                throw new ArgumentNullException("trigger");
+            }
+
+            if (to == null)
+            {
+                throw new ArgumentNullException("to");
+            }
+
+
             if (!canConfigure)
             {
                 throw new InvalidOperationException(
