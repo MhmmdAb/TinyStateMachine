@@ -65,6 +65,7 @@ namespace ConnivingSquirrel.Ai
         private TTrigger lastConfiguredTrigger;
         private readonly TState startingState;
         private TState state;
+        private Action<TState, TTrigger, TState> onAnyTransitionAction;
 
         /// <summary>
         /// The current state of the FSM.
@@ -150,11 +151,23 @@ namespace ConnivingSquirrel.Ai
                 transition.Guard(state, trigger, transition.Next);
 
             if (!guardAllowsFiring)
+            {
                 return;
+            }
+
+            var currentState = state;
+            var nextState = transition.Next;
+            state = transition.Next;
 
             if (transition.Action != null)
-                transition.Action(state, trigger, transition.Next);
-            state = transition.Next;
+            {
+                transition.Action(currentState, trigger, nextState);
+            }
+
+            if (onAnyTransitionAction != null)
+            {
+                onAnyTransitionAction(currentState, trigger, nextState);
+            }
         }
 
         /// <summary>
@@ -207,7 +220,7 @@ namespace ConnivingSquirrel.Ai
             if (transitions.Count == 0)
             {
                 throw new InvalidOperationException(
-                    "\"Action\" cannot be called before configuring a" +
+                    "\"Guard\" cannot be called before configuring a" +
                     " transition."
                     );
             }
@@ -245,40 +258,15 @@ namespace ConnivingSquirrel.Ai
         }
 
         /// <summary>
-        /// Shorthand for <see cref="OnTransition(Action)"/>.
+        /// See
+        /// <see cref="On(Action&lt;TState,TTrigger,TState&gt;)"/>.
         /// </summary>
         /// <param name="action">A delegate to a method that will be called 
         /// on state change.</param>
         /// <returns><c>this</c></returns>
         public TinyStateMachine<TState, TTrigger> On(Action action)
         {
-            return OnTransition(action);
-        }
-
-        /// <summary>
-        /// Shorthand for
-        /// <see cref="OnTransition(Action&lt;TState,TTrigger,TState&gt;)"/>.
-        /// </summary>
-        /// <param name="action">A delegate to a method that will be called 
-        /// on state change.</param>
-        /// <returns><c>this</c></returns>
-        public TinyStateMachine<TState, TTrigger> On(
-            Action<TState, TTrigger, TState> action
-            )
-        {
-            return OnTransition(action);
-        }
-
-        /// <summary>
-        /// See
-        /// <see cref="OnTransition(Action&lt;TState,TTrigger,TState&gt;)"/>.
-        /// </summary>
-        /// <param name="action">A delegate to a method that will be called 
-        /// on state change.</param>
-        /// <returns><c>this</c></returns>
-        public TinyStateMachine<TState, TTrigger> OnTransition(Action action)
-        {
-            return OnTransition((f, tr, t) => action());
+            return On((f, tr, t) => action());
         }
 
         /// <summary>
@@ -290,13 +278,16 @@ namespace ConnivingSquirrel.Ai
         /// on state change.</param>
         /// <returns><c>this</c></returns>
         /// <exception cref="System.InvalidOperationException">No transition
-        /// was configured before calling this method or an action was already
-        /// set for the last transition.
+        /// was configured before calling this method, an action was already
+        /// set for the last transition, or the method was called after the 
+        /// the configuration phase was done (i.e. after 
+        /// <see cref="Fire(TTrigger)">Fire</see>, <see cref="State"/>, or
+        /// <see cref="IsInState(TState)">IsInState</see>) were called).
         /// </exception>
         /// <exception cref="System.ArgumentNullException">
         /// <paramref name="action"/> is null.
         /// </exception>
-        public TinyStateMachine<TState, TTrigger> OnTransition(
+        public TinyStateMachine<TState, TTrigger> On(
             Action<TState, TTrigger, TState> action
             )
         {
@@ -308,7 +299,7 @@ namespace ConnivingSquirrel.Ai
             if (!canConfigure)
             {
                 throw new InvalidOperationException(
-                    "\"Action\" cannot be called after \"Fire()\" or" + 
+                    "\"On\" method cannot be called after \"Fire()\" or" + 
                     " \"State\" are called."
                     );
             }
@@ -316,7 +307,7 @@ namespace ConnivingSquirrel.Ai
             if (transitions.Count == 0)
             {
                 throw new InvalidOperationException(
-                    "\"Action\" cannot be called before configuring a" +
+                    "\"On\" method cannot be called before configuring a" +
                     " transition."
                     );
             }
@@ -339,10 +330,57 @@ namespace ConnivingSquirrel.Ai
         }
 
         /// <summary>
+        /// See <see cref="OnAny(Action&lt;TState,TTrigger,TState&gt;)"/>.
+        /// </summary>
+        /// <param name="action">A delegate to a method that will be called 
+        /// on state change.</param>
+        /// <returns><c>this</c></returns>
+        public TinyStateMachine<TState, TTrigger> OnAny(Action action)
+        {
+            return OnAny((f, tr, t) => action());
+        }
+
+        /// <summary>
+        /// Sets the action that will be called after <em>any</em> finite state
+        /// machine transition is triggered.
+        /// </summary>
+        /// <param name="action">A delegate to a method that will be called 
+        /// on state change.</param>
+        /// <returns><c>this</c></returns>
+        /// <exception cref="System.InvalidOperationException">The method was
+        /// called after the configuration phase was done (i.e. after 
+        /// <see cref="Fire(TTrigger)">Fire</see>, <see cref="State"/>, or
+        /// <see cref="IsInState(TState)">IsInState</see>) were called).
+        /// </exception>
+        /// <exception cref="System.ArgumentNullException">
+        /// <paramref name="action"/> is null.
+        /// </exception>
+        public TinyStateMachine<TState, TTrigger> OnAny(
+            Action<TState, TTrigger, TState> action
+            )
+        {
+            if (action == null)
+            {
+                throw new ArgumentNullException("action");
+            }
+
+            if (!canConfigure)
+            {
+                throw new InvalidOperationException(
+                    "\"OnAny\" cannot be called after \"Fire()\" or" +
+                    " \"State\" are called."
+                    );
+            }
+
+            onAnyTransitionAction = action;
+            return this;
+        }
+
+        /// <summary>
         /// Sets the state of the machine to the starting state specified in
         /// the <see cref="TinyStateMachine(TState)">constructor</see>, but 
         /// does <em>not</em> fire any 
-        /// <see cref="OnTransition(Action)">transition events</see> and does
+        /// <see cref="On(Action)">transition events</see> and does
         /// <em>not</em> check any of the 
         /// <see cref="Guard(Func&lt;bool&gt;)">guard methods.</see>
         /// </summary>
@@ -353,7 +391,7 @@ namespace ConnivingSquirrel.Ai
 
         /// <summary>
         /// Sets the state of the machine to <paramref name="state"/>, but does
-        /// <em>not</em> fire any <see cref="OnTransition(Action)">transition
+        /// <em>not</em> fire any <see cref="On(Action)">transition
         /// events</see> and does <em>not</em> check any of the
         /// <see cref="Guard(Func&lt;bool&gt;)">guard methods.</see>
         /// </summary>

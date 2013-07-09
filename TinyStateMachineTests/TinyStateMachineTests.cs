@@ -55,9 +55,9 @@ namespace ConnivingSquirrel.Ai
                 );
             
             machine.Tr(DoorState.Closed, DoorEvents.Open, DoorState.Open)
-                   .OnTransition(() => wasDoorOpened = true)
+                   .On(() => wasDoorOpened = true)
                    .Tr(DoorState.Open, DoorEvents.Close, DoorState.Closed)
-                   .OnTransition(() => wasDoorClosed = true);
+                   .On(() => wasDoorClosed = true);
 
             Assert.That(wasDoorOpened, Is.False);
             Assert.That(wasDoorClosed, Is.False);
@@ -103,21 +103,20 @@ namespace ConnivingSquirrel.Ai
             var machine = new TinyStateMachine<DoorState, DoorEvents>(
                 DoorState.Closed
                 );
-            machine
-                .Tr(DoorState.Closed, DoorEvents.Open, DoorState.Open)
-                .OnTransition((from, trigger, to) =>
-                {
-                    Assert.That(from, Is.EqualTo(DoorState.Closed));
-                    Assert.That(trigger, Is.EqualTo(DoorEvents.Open));
-                    Assert.That(to, Is.EqualTo(DoorState.Open));
-                })
-                .Tr(DoorState.Open, DoorEvents.Close, DoorState.Closed)
-                .OnTransition((from, trigger, to) =>
-                {
-                    Assert.That(from, Is.EqualTo(DoorState.Open));
-                    Assert.That(trigger, Is.EqualTo(DoorEvents.Close));
-                    Assert.That(to, Is.EqualTo(DoorState.Closed));
-                });
+            machine.Tr(DoorState.Closed, DoorEvents.Open, DoorState.Open)
+                   .On((from, trigger, to) =>
+                   {
+                       Assert.That(from, Is.EqualTo(DoorState.Closed));
+                       Assert.That(trigger, Is.EqualTo(DoorEvents.Open));
+                       Assert.That(to, Is.EqualTo(DoorState.Open));
+                   })
+                   .Tr(DoorState.Open, DoorEvents.Close, DoorState.Closed)
+                   .On((from, trigger, to) =>
+                   {
+                       Assert.That(from, Is.EqualTo(DoorState.Open));
+                       Assert.That(trigger, Is.EqualTo(DoorEvents.Close));
+                       Assert.That(to, Is.EqualTo(DoorState.Closed));
+                   });
 
             Assert.That(machine.State, Is.EqualTo(DoorState.Closed));
             machine.Fire(DoorEvents.Open);
@@ -133,23 +132,22 @@ namespace ConnivingSquirrel.Ai
                 DoorState.Closed
                 );
             
-            machine
-                .Tr(DoorState.Closed, DoorEvents.Open, DoorState.Open)
-                .Guard((from, trigger, to) =>
-                {
-                    Assert.That(from, Is.EqualTo(DoorState.Closed));
-                    Assert.That(trigger, Is.EqualTo(DoorEvents.Open));
-                    Assert.That(to, Is.EqualTo(DoorState.Open));
-                    return true;
-                })
-                .Tr(DoorState.Open, DoorEvents.Close, DoorState.Closed)
-                .Guard((from, trigger, to) =>
-                {
-                    Assert.That(from, Is.EqualTo(DoorState.Open));
-                    Assert.That(trigger, Is.EqualTo(DoorEvents.Close));
-                    Assert.That(to, Is.EqualTo(DoorState.Closed));
-                    return true;
-                });
+            machine.Tr(DoorState.Closed, DoorEvents.Open, DoorState.Open)
+                   .Guard((from, trigger, to) =>
+                   {
+                       Assert.That(from, Is.EqualTo(DoorState.Closed));
+                       Assert.That(trigger, Is.EqualTo(DoorEvents.Open));
+                       Assert.That(to, Is.EqualTo(DoorState.Open));
+                       return true;
+                   })
+                   .Tr(DoorState.Open, DoorEvents.Close, DoorState.Closed)
+                   .Guard((from, trigger, to) =>
+                   {
+                       Assert.That(from, Is.EqualTo(DoorState.Open));
+                       Assert.That(trigger, Is.EqualTo(DoorEvents.Close));
+                       Assert.That(to, Is.EqualTo(DoorState.Closed));
+                       return true;
+                   });
 
             Assert.That(machine.State, Is.EqualTo(DoorState.Closed));
             machine.Fire(DoorEvents.Open);
@@ -185,19 +183,72 @@ namespace ConnivingSquirrel.Ai
                 DoorState.Closed
                 );
                 
-            machine
-                .Tr(DoorState.Closed, DoorEvents.Open, DoorState.Open)
-                    .OnTransition(() => Assert.Fail())
-                    .Guard((from, trigger, to) => false)
-                .Tr(DoorState.Open, DoorEvents.Close, DoorState.Closed)
-                    .OnTransition(() => Assert.Fail())
-                    .Guard((from, trigger, to) => false);
+            machine.Tr(DoorState.Closed, DoorEvents.Open, DoorState.Open)
+                   .On(() => Assert.Fail())
+                   .Guard((from, trigger, to) => false)
+                   .Tr(DoorState.Open, DoorEvents.Close, DoorState.Closed)
+                   .On(() => Assert.Fail())
+                   .Guard((from, trigger, to) => false);
 
             Assert.That(machine.State, Is.EqualTo(DoorState.Closed));
             machine.Reset(DoorState.Open);
             Assert.That(machine.State, Is.EqualTo(DoorState.Open));
             machine.Reset(DoorState.Closed);
             Assert.That(machine.State, Is.EqualTo(DoorState.Closed));
+        }
+
+        [Test]
+        public void OnAny_action_is_called_after_every_successful_transition()
+        {
+            var transitionCount = 0;
+            var machine = GetFixture();
+
+            machine.OnAny(() =>
+            {
+                ++transitionCount;
+                if (transitionCount == 1)
+                {
+                    Assert.That(machine.State, Is.EqualTo(DoorState.Open));
+                }
+                else if (transitionCount == 2)
+                {
+                    Assert.That(machine.State, Is.EqualTo(DoorState.Closed));
+                }
+                else
+                {
+                    Assert.Fail();
+                }
+            });
+
+            machine.Fire(DoorEvents.Open);
+            machine.Fire(DoorEvents.Close);
+            Assert.That(transitionCount, Is.EqualTo(2));
+        }
+
+        [Test]
+        public void OnAny_action_is_called_with_the_correct_parameters()
+        {
+            var transitionCount = 0;
+            var machine = GetFixture();
+
+            machine.OnAny((from, trigger, to) =>
+            {
+                ++transitionCount;
+                if (transitionCount == 1)
+                {
+                    Assert.That(from, Is.EqualTo(DoorState.Closed));
+                    Assert.That(trigger, Is.EqualTo(DoorEvents.Open));
+                    Assert.That(to, Is.EqualTo(DoorState.Open));
+                }
+                else if (transitionCount == 2)
+                {
+                    Assert.That(from, Is.EqualTo(DoorState.Open));
+                    Assert.That(trigger, Is.EqualTo(DoorEvents.Close));
+                    Assert.That(to, Is.EqualTo(DoorState.Closed));
+                }
+            });
+            machine.Fire(DoorEvents.Open);
+            machine.Fire(DoorEvents.Close);            
         }
     }
 }
