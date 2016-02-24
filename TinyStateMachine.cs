@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace ConnivingSquirrel.Ai
+namespace M16h
 {
     /// <summary>
     /// A simple
@@ -77,7 +77,7 @@ namespace ConnivingSquirrel.Ai
             this.canConfigure = true;
             this.state = startingState;
             this.startingState = startingState;
-            this.transitions = 
+            this.transitions =
                 new Dictionary<TState, Dictionary<TTrigger, Transition>>();
         }
 
@@ -108,25 +108,25 @@ namespace ConnivingSquirrel.Ai
                     "There are no transitions configured for state \"{0}\""
                     , state
                     );
-                    
+
                 throw new InvalidOperationException(errorMessage);
             }
 
             if (!transitions[state].ContainsKey(trigger))
             {
-                var errorMessage = string.Format( 
-                    "There are no transitions configured for state \"{0}\" " + 
+                var errorMessage = string.Format(
+                    "There are no transitions configured for state \"{0}\" " +
                     "and trigger \"{1}\"",
                     state,
                     trigger
                     );
-                    
+
                 throw new InvalidOperationException(errorMessage);
             }
 
             var transition = transitions[state][trigger];
 
-            var guardAllowsFiring = 
+            var guardAllowsFiring =
                 transition.Guard == null ||
                 transition.Guard(state, trigger, transition.Next);
 
@@ -194,7 +194,7 @@ namespace ConnivingSquirrel.Ai
                     "\"Guard\" cannot be called after \"Fire()\" or" +
                     " \"State\" are called."
                     );
-                    
+
             }
 
             if (transitions.Count == 0)
@@ -210,11 +210,11 @@ namespace ConnivingSquirrel.Ai
             if (tr.Guard != null)
             {
                 var errorMessage = string.Format(
-                    "A guard has already been configured for state {0}" + 
+                    "A guard has already been configured for state {0}" +
                     " and trigger {1}.",
                     lastConfiguredState,
                     lastConfiguredTrigger
-                    );                    
+                    );
                 throw new InvalidOperationException(errorMessage);
             }
 
@@ -279,7 +279,7 @@ namespace ConnivingSquirrel.Ai
             if (!canConfigure)
             {
                 throw new InvalidOperationException(
-                    "\"On\" method cannot be called after \"Fire()\" or" + 
+                    "\"On\" method cannot be called after \"Fire()\" or" +
                     " \"State\" are called."
                     );
             }
@@ -450,9 +450,9 @@ namespace ConnivingSquirrel.Ai
             if (!canConfigure)
             {
                 throw new InvalidOperationException(
-                    "\"Tr\" cannot be called after \"Fire()\" or \"State\"" + 
+                    "\"Tr\" cannot be called after \"Fire()\" or \"State\"" +
                     " are called."
-                    );                    
+                    );
             }
 
             if (!transitions.ContainsKey(from))

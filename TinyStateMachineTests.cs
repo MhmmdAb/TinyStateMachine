@@ -1,7 +1,7 @@
 using System;
 using NUnit.Framework;
 
-namespace ConnivingSquirrel.Ai
+namespace M16h
 {
     /// <summary>
     /// A test for TinyStateMachine using the canonical door example. Door
