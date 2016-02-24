@@ -3,6 +3,14 @@ using NUnit.Framework;
 
 namespace ConnivingSquirrel.Ai
 {
+    /// <summary>
+    /// A test for TinyStateMachine using the canonical door example. Door
+    /// can be in one of two states: either <see cref="DoorState.Open">Open</see>
+    /// or <see cref="DoorState.Closed">closed</see>, represented by the 
+    /// <see cref="DoorState"/> enum. State of the door can only be changed
+    /// by receiving either one of two events: <see cref="DoorEvents.Open"/> 
+    /// or <see cref="DoorEvents.Close"/>.
+    /// </summary>
     [TestFixture]
     public class TinyStateMachineTests
     {
@@ -98,7 +106,7 @@ namespace ConnivingSquirrel.Ai
         }
 
         [Test]
-        public void Action_is_called_with_correct_parameters()
+        public void Action_is_called_with_the_expected_parameters()
         {
             var machine = new TinyStateMachine<DoorState, DoorEvents>(
                 DoorState.Closed
@@ -126,7 +134,7 @@ namespace ConnivingSquirrel.Ai
         }
 
         [Test]
-        public void Guard_is_called_with_correct_parameters()
+        public void Guard_is_called_with_the_expected_parameters()
         {
             var machine = new TinyStateMachine<DoorState, DoorEvents>(
                 DoorState.Closed
@@ -157,7 +165,7 @@ namespace ConnivingSquirrel.Ai
         }
 
         [Test]
-        public void Reset_returns_machine_to_initial_state()
+        public void Reset_method_returns_machine_to_initial_state()
         {
             var machine = GetFixture();
             Assert.That(machine.State, Is.EqualTo(DoorState.Closed));
@@ -168,7 +176,7 @@ namespace ConnivingSquirrel.Ai
         }
 
         [Test]
-        public void Reset_sets_machine_to_specified_state()
+        public void Reset_method_sets_machine_to_specified_state()
         {
             var machine = GetFixture();
             Assert.That(machine.State, Is.EqualTo(DoorState.Closed));
@@ -177,7 +185,7 @@ namespace ConnivingSquirrel.Ai
         }
 
         [Test]
-        public void Calling_Reset_does_not_call_guard_or_transitions()
+        public void Calling_Reset_method_does_not_call_guard_or_trigger_transitions()
         {
             var machine = new TinyStateMachine<DoorState, DoorEvents>(
                 DoorState.Closed
@@ -226,7 +234,7 @@ namespace ConnivingSquirrel.Ai
         }
 
         [Test]
-        public void OnAny_action_is_called_with_the_correct_parameters()
+        public void OnAny_action_is_called_with_the_expected_parameters()
         {
             var transitionCount = 0;
             var machine = GetFixture();
