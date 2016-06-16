@@ -37,7 +37,7 @@ namespace M16h
         }
 
         [Test]
-        public void Test_simple_machine_construction()
+        public void State_machine_is_constructed_with_the_correct_initial_state()
         {
             var machine = GetFixture();
             Assert.That(machine.State, Is.EqualTo(DoorState.Closed));
@@ -53,7 +53,7 @@ namespace M16h
         }
 
         [Test]
-        public void Appropritate_action_is_called_on_transition()
+        public void Appropriate_action_is_called_on_transition()
         {
             var wasDoorOpened = false;
             var wasDoorClosed = false;
